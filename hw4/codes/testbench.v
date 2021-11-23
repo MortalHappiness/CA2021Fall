@@ -16,6 +16,9 @@ CPU CPU(
 );
   
 initial begin
+    $dumpfile("CPU.vcd");
+    $dumpvars;
+
     counter = 0;
     
     // initialize instruction memory
