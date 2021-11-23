@@ -10,7 +10,7 @@ CPU.vcd: CPU.out
 # phony rules
 all: CPU.out
 
-run: CPU.out
+run: CPU.vcd
 
 wave: CPU.vcd
 	gtkwave CPU.vcd
