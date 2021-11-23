@@ -37,8 +37,6 @@ assign funct3 = instruction[14:12];
 assign RDaddr = instruction[11:7];
 assign opcode = instruction[6:0];
 
-parameter ALU_ADD = 1;
-
 Control Control(
     .Op_i       (opcode),
     .ALUOp_o    (ALUOp),
