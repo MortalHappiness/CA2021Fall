@@ -1,4 +1,4 @@
-module MUX32
+module MUX2
 (
     data1_i, 
     data2_i,

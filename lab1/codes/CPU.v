@@ -27,6 +27,8 @@ wire    [4:0]       ID_RS2addr;
 wire    [4:0]       ID_RDaddr;
 wire    [9:0]       ID_funct;
 wire    [9:0]       EX_funct;
+wire    [4:0]       EX_RS1addr;
+wire    [4:0]       EX_RS2addr;
 wire    [4:0]       EX_RDaddr;
 wire    [4:0]       MEM_RDaddr;
 wire    [4:0]       WB_RDaddr;
@@ -63,8 +65,10 @@ wire    [31:0]      RDdata;
 wire    [31:0]      ID_immediate;
 wire    [31:0]      EX_immediate;
 
-// Mux (One of ALU input)
+// ALU Input
+wire    [31:0]      ALUInput1;
 wire    [31:0]      ALUInput2;
+wire    [31:0]      ALUInput_MUX_4_2_connect;
 
 // ALU Control
 wire    [2:0]       ALUCtrl;
@@ -77,6 +81,10 @@ wire    [31:0]      WB_ALUResult;
 // Data Memory
 wire    [31:0]      MEM_MemData;
 wire    [31:0]      WB_MemData;
+
+// Forwarding Unit
+wire    [1:0]       ForwardA;
+wire    [1:0]       ForwardB;
 
 // Flush
 wire                Flush;
@@ -125,6 +133,8 @@ ID_EX_Registers ID_EX_Registers (
     .RS2data_i      (ID_RS2data),
     .immediate_i    (ID_immediate),
     .funct_i        (ID_funct),
+    .RS1addr_i      (ID_RS1addr),
+    .RS2addr_i      (ID_RS2addr),
     .RDaddr_i       (ID_RDaddr),
     .RegWrite_o     (EX_RegWrite),
     .MemtoReg_o     (EX_MemtoReg),
@@ -136,6 +146,8 @@ ID_EX_Registers ID_EX_Registers (
     .RS2data_o      (EX_RS2data),
     .immediate_o    (EX_immediate),
     .funct_o        (EX_funct),
+    .RS1addr_o      (EX_RS1addr),
+    .RS2addr_o      (EX_RS2addr),
     .RDaddr_o       (EX_RDaddr)
 );
 
@@ -147,7 +159,7 @@ EX_MEM_Registers EX_MEM_Registers (
     .MemRead_i      (EX_MemRead),
     .MemWrite_i     (EX_MemWrite),
     .ALUResult_i    (EX_ALUResult),
-    .RS2data_i      (EX_RS2data),
+    .RS2data_i      (ALUInput_MUX_4_2_connect),
     .RDaddr_i       (EX_RDaddr),
     .RegWrite_o     (MEM_RegWrite),
     .MemtoReg_o     (MEM_MemtoReg),
@@ -229,8 +241,26 @@ Sign_Extend Imm_Gen(
 // ========================================
 // EX stage components
 
-MUX32 MUX_ALUInput(
+MUX4 MUX4_ALUInput1(
+    .data1_i    (EX_RS1data),
+    .data2_i    (RDdata),
+    .data3_i    (MEM_ALUResult),
+    .data4_i    (),
+    .select_i   (ForwardA),
+    .data_o     (ALUInput1)
+);
+
+MUX4 MUX4_ALUInput2(
     .data1_i    (EX_RS2data),
+    .data2_i    (RDdata),
+    .data3_i    (MEM_ALUResult),
+    .data4_i    (),
+    .select_i   (ForwardB),
+    .data_o     (ALUInput_MUX_4_2_connect)
+);
+
+MUX2 MUX2_ALUInput2(
+    .data1_i    (ALUInput_MUX_4_2_connect),
     .data2_i    (EX_immediate),
     .select_i   (EX_ALUSrc),
     .data_o     (ALUInput2)
@@ -243,7 +273,7 @@ ALU_Control ALU_Control(
 );
 
 ALU ALU(
-    .data1_i    (EX_RS1data),
+    .data1_i    (ALUInput1),
     .data2_i    (ALUInput2),
     .ALUCtrl_i  (ALUCtrl),
     .data_o     (EX_ALUResult),
@@ -265,11 +295,25 @@ Data_Memory Data_Memory(
 // ========================================
 // WB stage components
 
-MUX32 MUX_RDdata(
+MUX2 MUX2_RDdata(
     .data1_i    (WB_ALUResult),
     .data2_i    (WB_MemData),
     .select_i   (WB_MemtoReg),
     .data_o     (RDdata)
+);
+
+// ========================================
+// Forwarding Unit
+
+Forwarding_Unit Forwarding_Unit(
+    .EX_RS1addr_i   (EX_RS1addr),
+    .EX_RS2addr_i   (EX_RS2addr),
+    .MEM_RegWrite_i (MEM_RegWrite),
+    .MEM_RDaddr_i   (MEM_RDaddr),
+    .WB_RegWrite_i  (WB_RegWrite),
+    .WB_RDaddr_i    (WB_RDaddr),
+    .ForwardA_o     (ForwardA),
+    .ForwardB_o     (ForwardB)
 );
 
 // ========================================

@@ -36,6 +36,8 @@ module ID_EX_Registers
     RS2data_i,
     immediate_i,
     funct_i,
+    RS1addr_i,
+    RS2addr_i,
     RDaddr_i,
     RegWrite_o,
     MemtoReg_o,
@@ -47,6 +49,8 @@ module ID_EX_Registers
     RS2data_o,
     immediate_o,
     funct_o,
+    RS1addr_o,
+    RS2addr_o,
     RDaddr_o
 );
 
@@ -62,6 +66,8 @@ input       [31:0]      RS1data_i;
 input       [31:0]      RS2data_i;
 input       [31:0]      immediate_i;
 input       [9:0]       funct_i;
+input       [4:0]       RS1addr_i;
+input       [4:0]       RS2addr_i;
 input       [4:0]       RDaddr_i;
 output reg              RegWrite_o;
 output reg              MemtoReg_o;
@@ -73,6 +79,8 @@ output reg  [31:0]      RS1data_o;
 output reg  [31:0]      RS2data_o;
 output reg  [31:0]      immediate_o;
 output reg  [9:0]       funct_o;
+output reg  [4:0]       RS1addr_o;
+output reg  [4:0]       RS2addr_o;
 output reg  [4:0]       RDaddr_o;
 
 always @ (posedge clk_i or posedge rst_i) begin
@@ -87,6 +95,8 @@ always @ (posedge clk_i or posedge rst_i) begin
         RS2data_o <= 32'b0;
         immediate_o <= 32'b0;
         funct_o <= 10'b0;
+        RS1addr_o <= 5'b0;
+        RS2addr_o <= 5'b0;
         RDaddr_o <= 5'b0;
     end
     else begin
@@ -100,6 +110,8 @@ always @ (posedge clk_i or posedge rst_i) begin
         RS2data_o <= RS2data_i;
         immediate_o <= immediate_i;
         funct_o <= funct_i;
+        RS1addr_o <= RS1addr_i;
+        RS2addr_o <= RS2addr_i;
         RDaddr_o <= RDaddr_i;
     end
 end
