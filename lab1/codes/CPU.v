@@ -58,7 +58,7 @@ PC PC(
     .clk_i      (clk_i),
     .rst_i      (rst_i),
     .start_i    (start_i),
-    .PCWrite_i  (),
+    .PCWrite_i  (1'b1),
     .pc_i       (pc_i),
     .pc_o       (pc_o)
 );
