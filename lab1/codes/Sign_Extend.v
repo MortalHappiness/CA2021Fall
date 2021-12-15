@@ -24,7 +24,7 @@ assign opcode = data_i[6:0];
 
 assign data_o =
     (opcode == CPU.OP_STORE) ? {{20{funct7[6]}}, funct7, RDaddr}:
-    (opcode == CPU.OP_BRANCH) ? {{20{funct7[6]}}, RDaddr[0], funct7[5:0], RDaddr[4:1], 1'b0}:
+    (opcode == CPU.OP_BRANCH) ? {{21{funct7[6]}}, RDaddr[0], funct7[5:0], RDaddr[4:1]}:
     {{20{funct7[6]}}, funct7, RS2addr};
 
 endmodule

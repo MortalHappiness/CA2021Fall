@@ -14,7 +14,8 @@ input               start_i;
 
 // PC
 wire    [31:0]      pc_i;
-wire    [31:0]      pc_o;
+wire    [31:0]      IF_pc_o;
+wire    [31:0]      ID_pc_o;
 
 // Instruction
 wire    [31:0]      IF_instruction;
@@ -52,6 +53,7 @@ wire                MEM_MemRead;
 wire                MEM_MemWrite;
 wire                WB_RegWrite;
 wire                WB_MemtoReg;
+wire                Branch;
 
 // Register file
 wire    [31:0]      ID_RS1data;
@@ -86,11 +88,17 @@ wire    [31:0]      WB_MemData;
 wire    [1:0]       ForwardA;
 wire    [1:0]       ForwardB;
 
-// Flush
+// Branch and Hazard Detection
 wire                Flush;
-assign Flush = 0;
+wire    [31:0]      Branch_addr;
+wire    [31:0]      pc_add_4;
+wire                PCWrite;
+wire                Stall;
+wire                NoOp;
 
 // ========================================
+// Flush
+assign Flush = (Branch && ID_RS1data == ID_RS2data);
 
 // Instruction wire assignments
 assign ID_funct7 = ID_instruction[31:25];
@@ -116,7 +124,10 @@ parameter OP_BRANCH = 7'b1100011;
 IF_ID_Registers IF_ID_Registers(
     .clk_i          (clk_i),
     .rst_i          (rst_i),
+    .Stall_i        (Stall),
+    .pc_o_i         (IF_pc_o),
     .instruction_i  (IF_instruction),
+    .pc_o_o         (ID_pc_o),
     .instruction_o  (ID_instruction)
 );
 
@@ -188,30 +199,38 @@ MEM_WB_Registers MEM_WB_Registers (
 // ========================================
 // IF stage components
 
+MUX2 MUX2_pc_i(
+    .data1_i    (pc_add_4),
+    .data2_i    (Branch_addr),
+    .select_i   (Flush),
+    .data_o     (pc_i)
+);
+
 PC PC(
     .clk_i      (clk_i),
     .rst_i      (rst_i),
     .start_i    (start_i),
-    .PCWrite_i  (1'b1),
+    .PCWrite_i  (PCWrite),
     .pc_i       (pc_i),
-    .pc_o       (pc_o)
+    .pc_o       (IF_pc_o)
 );
 
 Instruction_Memory Instruction_Memory(
-    .addr_i     (pc_o), 
+    .addr_i     (IF_pc_o), 
     .instr_o    (IF_instruction)
 );
 
 Adder Add_PC(
-    .data1_i   (pc_o),
+    .data1_i   (IF_pc_o),
     .data2_i   (4),
-    .data_o     (pc_i)
+    .data_o     (pc_add_4)
 );
 
 // ========================================
 // ID stage components
 
 Control Control(
+    .NoOp_i     (NoOp),
     .Op_i       (ID_opcode),
     .RegWrite_o (ID_RegWrite),
     .MemtoReg_o (ID_MemtoReg),
@@ -219,7 +238,7 @@ Control Control(
     .MemWrite_o (ID_MemWrite),
     .ALUOp_o    (ID_ALUOp),
     .ALUSrc_o   (ID_ALUSrc),
-    .Branch_o   ()
+    .Branch_o   (Branch)
 );
 
 Registers Registers(
@@ -236,6 +255,12 @@ Registers Registers(
 Sign_Extend Imm_Gen(
     .data_i     (ID_instruction),
     .data_o     (ID_immediate)
+);
+
+Adder Branch_addr_adder(
+    .data1_i    (ID_immediate << 1),
+    .data2_i    (ID_pc_o),
+    .data_o     (Branch_addr)
 );
   
 // ========================================
@@ -320,7 +345,13 @@ Forwarding_Unit Forwarding_Unit(
 // Hazard Detection
 
 Hazard_Detection Hazard_Detection(
-    .Stall_o    ()
+    .ID_RS1addr_i   (ID_RS1addr),
+    .ID_RS2addr_i   (ID_RS2addr),
+    .EX_MemRead_i   (EX_MemRead),
+    .EX_RDaddr_i    (EX_RDaddr),
+    .PCWrite_o      (PCWrite),
+    .Stall_o        (Stall),
+    .NoOp_o         (NoOp)
 );
 
 endmodule
