@@ -31,6 +31,26 @@ wire    [4:0]       EX_RDaddr;
 wire    [4:0]       MEM_RDaddr;
 wire    [4:0]       WB_RDaddr;
 
+// Control signals
+wire                ID_RegWrite;
+wire                ID_MemtoReg;
+wire                ID_MemRead;
+wire                ID_MemWrite;
+wire    [1:0]       ID_ALUOp;
+wire                ID_ALUSrc;
+wire                EX_RegWrite;
+wire                EX_MemtoReg;
+wire                EX_MemRead;
+wire                EX_MemWrite;
+wire    [1:0]       EX_ALUOp;
+wire                EX_ALUSrc;
+wire                MEM_RegWrite;
+wire                MEM_MemtoReg;
+wire                MEM_MemRead;
+wire                MEM_MemWrite;
+wire                WB_RegWrite;
+wire                WB_MemtoReg;
+
 // Register file
 wire    [31:0]      ID_RS1data;
 wire    [31:0]      ID_RS2data;
@@ -57,26 +77,6 @@ wire    [31:0]      WB_ALUResult;
 // Data Memory
 wire    [31:0]      MEM_MemData;
 wire    [31:0]      WB_MemData;
-
-// Control signals
-wire                ID_RegWrite;
-wire                ID_MemtoReg;
-wire                ID_MemRead;
-wire                ID_MemWrite;
-wire    [1:0]       ID_ALUOp;
-wire                ID_ALUSrc;
-wire                EX_RegWrite;
-wire                EX_MemtoReg;
-wire                EX_MemRead;
-wire                EX_MemWrite;
-wire    [1:0]       EX_ALUOp;
-wire                EX_ALUSrc;
-wire                MEM_RegWrite;
-wire                MEM_MemtoReg;
-wire                MEM_MemRead;
-wire                MEM_MemWrite;
-wire                WB_RegWrite;
-wire                WB_MemtoReg;
 
 // Flush
 wire                Flush;
