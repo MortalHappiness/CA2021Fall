@@ -191,8 +191,8 @@ Instruction_Memory Instruction_Memory(
 );
 
 Adder Add_PC(
-    .data1_in   (pc_o),
-    .data2_in   (4),
+    .data1_i   (pc_o),
+    .data2_i   (4),
     .data_o     (pc_i)
 );
 
