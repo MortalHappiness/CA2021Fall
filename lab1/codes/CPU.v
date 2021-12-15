@@ -10,29 +10,56 @@ input               clk_i;
 input               rst_i;
 input               start_i;
 
-// Data Types
+// ========================================
+
+// PC
 wire    [31:0]      pc_i;
 wire    [31:0]      pc_o;
+
+// Instruction
 wire    [31:0]      instruction;
-wire    [1:0]       ALUOp;
-wire                ALUSrc;
-wire                RegWrite;
 wire    [6:0]       funct7;
 wire    [2:0]       funct3;
 wire    [6:0]       opcode;
 wire    [4:0]       RS1addr;
 wire    [4:0]       RS2addr;
 wire    [4:0]       RDaddr;
+
+// Register file
 wire    [31:0]      RS1data;
 wire    [31:0]      RS2data;
 wire    [31:0]      RDdata;
+
+// Sign Extend
 wire    [31:0]      SignExtend_o;
-wire    [31:0]      Mux_o;
+
+// Mux (One of ALU input)
+wire    [31:0]      ALUInput2;
+
+// ALU Control
 wire    [2:0]       ALUCtrl;
 
+// ALU
+wire    [31:0]      ALUResult;
+
+// Data Memory
+wire    [31:0]      MemData_o;
+
+// Control signals
+wire                RegWrite;
+wire                MemtoReg;
+wire                MemRead;
+wire                MemWrite;
+wire    [1:0]       ALUOp;
+wire                ALUSrc;
+
+// Flush
 wire                Flush;
 assign Flush = 0;
 
+// ========================================
+
+// Instruction wire assignments
 assign funct7 = instruction[31:25];
 assign RS2addr = instruction[24:20];
 assign RS1addr = instruction[19:15];
@@ -40,11 +67,25 @@ assign funct3 = instruction[14:12];
 assign RDaddr = instruction[11:7];
 assign opcode = instruction[6:0];
 
+// ========================================
+// Parameters
+
+parameter OP_RTYPE = 7'b0110011;
+parameter OP_ITYPE = 7'b0010011;
+parameter OP_LOAD = 7'b0000011;
+parameter OP_STORE = 7'b0100011;
+parameter OP_BRANCH = 7'b1100011;
+
+// ========================================
+
 Control Control(
     .Op_i       (opcode),
+    .RegWrite_o (RegWrite),
+    .MemtoReg_o (MemtoReg),
+    .MemRead_o  (MemRead),
+    .MemWrite_o (MemWrite),
     .ALUOp_o    (ALUOp),
     .ALUSrc_o   (ALUSrc),
-    .RegWrite_o (RegWrite),
     .Branch_o   ()
 );
 
@@ -69,12 +110,12 @@ Instruction_Memory Instruction_Memory(
 );
 
 Data_Memory Data_Memory(
-    .clk_i      (),
-    .addr_i     (),
-    .MemRead_i  (),
-    .MemWrite_i (),
-    .data_i     (),
-    .data_o     ()
+    .clk_i      (clk_i),
+    .addr_i     (ALUResult),
+    .MemRead_i  (MemRead),
+    .MemWrite_i (MemWrite),
+    .data_i     (RS2data),
+    .data_o     (MemData_o)
 );
 
 Registers Registers(
@@ -88,23 +129,30 @@ Registers Registers(
     .RS2data_o   (RS2data) 
 );
 
-MUX32 MUX_ALUSrc(
+MUX32 MUX_ALUInput(
     .data1_i    (RS2data),
     .data2_i    (SignExtend_o),
     .select_i   (ALUSrc),
-    .data_o     (Mux_o)
+    .data_o     (ALUInput2)
+);
+
+MUX32 MUX_RDdata(
+    .data1_i    (ALUResult),
+    .data2_i    (MemData_o),
+    .select_i   (MemtoReg),
+    .data_o     (RDdata)
 );
 
 Sign_Extend Sign_Extend(
-    .data_i     (instruction[31:20]),
+    .data_i     (instruction),
     .data_o     (SignExtend_o)
 );
   
 ALU ALU(
     .data1_i    (RS1data),
-    .data2_i    (Mux_o),
+    .data2_i    (ALUInput2),
     .ALUCtrl_i  (ALUCtrl),
-    .data_o     (RDdata),
+    .data_o     (ALUResult),
     .Zero_o     ()
 );
 
