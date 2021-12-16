@@ -125,6 +125,7 @@ IF_ID_Registers IF_ID_Registers(
     .clk_i          (clk_i),
     .rst_i          (rst_i),
     .Stall_i        (Stall),
+    .Flush_i        (Flush),
     .pc_o_i         (IF_pc_o),
     .instruction_i  (IF_instruction),
     .pc_o_o         (ID_pc_o),

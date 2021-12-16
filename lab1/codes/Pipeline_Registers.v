@@ -3,6 +3,7 @@ module IF_ID_Registers
     clk_i,
     rst_i,
     Stall_i,
+    Flush_i,
     pc_o_i,
     instruction_i,
     pc_o_o,
@@ -12,6 +13,7 @@ module IF_ID_Registers
 input                   clk_i;
 input                   rst_i;
 input                   Stall_i;
+input                   Flush_i;
 input       [31:0]      pc_o_i;
 input       [31:0]      instruction_i;
 output reg  [31:0]      pc_o_o;
@@ -20,6 +22,9 @@ output reg  [31:0]      instruction_o;
 always @ (posedge clk_i or posedge rst_i) begin
     if (rst_i) begin
         pc_o_o <= 32'b0;
+        instruction_o <= 32'b0;
+    end
+    else if (Flush_i) begin
         instruction_o <= 32'b0;
     end
     else if (~Stall_i) begin
