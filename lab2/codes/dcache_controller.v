@@ -83,7 +83,7 @@ wire    [4:0]         cpu_offset;
 wire    [3:0]         cpu_index;
 wire    [22:0]        cpu_tag;
 wire    [255:0]       r_hit_data;
-wire    [21:0]        sram_tag;
+wire    [22:0]        sram_tag;
 wire                  hit;
 reg     [255:0]       w_hit_data;
 wire                  write_hit;
